@@ -20,6 +20,9 @@ object GibDestinations {
     const val GAME = "game"
     const val EVENTS = "events"
     const val PROFILE = "profile"
+
+    /** Not a bottom-nav tab — opened from the Home "Shop" quick action (§2 Avatar & Shop). */
+    const val SHOP = "shop"
 }
 
 val gibBottomBarItems = listOf(

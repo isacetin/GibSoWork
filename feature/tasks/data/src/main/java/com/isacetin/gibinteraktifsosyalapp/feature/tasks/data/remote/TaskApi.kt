@@ -6,7 +6,7 @@ import com.isacetin.gibinteraktifsosyalapp.feature.tasks.data.remote.dto.UserBal
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
-import retrofit2.http.PATCH
+import retrofit2.http.POST
 import retrofit2.http.Query
 
 /** Supabase PostgREST endpoints used by `:feature:tasks` (see docs/02_API_TEST.md). */
@@ -19,6 +19,6 @@ interface TaskApi {
     suspend fun getUsers(@Query("id") id: String): List<UserBalanceDto>
 
     @Headers("Prefer: return=minimal")
-    @PATCH("rpc/set_task_status")
+    @POST("rpc/set_task_status")
     suspend fun setTaskStatus(@Body request: SetTaskStatusRequest)
 }

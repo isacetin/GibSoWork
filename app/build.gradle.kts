@@ -36,6 +36,18 @@ dependencies {
     implementation(project(":feature:tasks:data"))
     implementation(project(":feature:tasks:presentation"))
 
+    implementation(project(":feature:shop:domain"))
+    implementation(project(":feature:shop:data"))
+    implementation(project(":feature:shop:presentation"))
+
+    implementation(project(":feature:events:domain"))
+    implementation(project(":feature:events:data"))
+    implementation(project(":feature:events:presentation"))
+
+    implementation(project(":feature:game:domain"))
+    implementation(project(":feature:game:data"))
+    implementation(project(":feature:game:presentation"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

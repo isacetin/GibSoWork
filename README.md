@@ -52,6 +52,7 @@ Mini oyun + skor  ─┘                                                      �
 - [`docs/05_FAZLAR.md`](docs/05_FAZLAR.md) — Multi-module mimari + geliştirme fazları
 - [`docs/06_KICKOFF_PROMPT.md`](docs/06_KICKOFF_PROMPT.md) — Yeni sohbet kodlama başlangıç promptu
 - [`docs/07_EKRAN_ENVANTERI.md`](docs/07_EKRAN_ENVANTERI.md) — UI Kit'ten türetilmiş ekran envanteri (tek doğruluk kaynağı)
+- [`docs/08_UI_KIT_COMPOSE_MAPPING.md`](docs/08_UI_KIT_COMPOSE_MAPPING.md) — UI Kit → Compose sadakat rehberi
 
 ## 👥 Ekip
 - Geliştirici 1 — Data/Backend katmanı

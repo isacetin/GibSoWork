@@ -34,3 +34,15 @@ include(":core:di")
 include(":feature:tasks:domain")
 include(":feature:tasks:data")
 include(":feature:tasks:presentation")
+
+include(":feature:shop:domain")
+include(":feature:shop:data")
+include(":feature:shop:presentation")
+
+include(":feature:events:domain")
+include(":feature:events:data")
+include(":feature:events:presentation")
+
+include(":feature:game:domain")
+include(":feature:game:data")
+include(":feature:game:presentation")
