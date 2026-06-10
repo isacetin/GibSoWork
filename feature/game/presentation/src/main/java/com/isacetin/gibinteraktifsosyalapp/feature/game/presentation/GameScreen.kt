@@ -32,7 +32,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -308,35 +310,100 @@ private fun LeaderboardContent(
     onDismissBanner: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
+    val podiumEntries = state.leaderboard.take(3)
+    val rowEntries = leaderboardRows(state.leaderboard)
+    val currentUserEntry = rowEntries.firstOrNull { it.isCurrentUser }
+        ?: state.leaderboard.firstOrNull { it.isCurrentUser }
+
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        item {
-            HeaderRow(title = "Sıralama", points = state.balance)
-        }
-        state.bannerMessage?.let { message ->
-            item { Banner(message = message, onDismiss = onDismissBanner) }
-        }
-        item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Pill(text = "Hafta", color = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
-                Pill(text = "Tüm", color = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.weight(1f))
-                Surface(onClick = onLanding, shape = PillShape, color = MaterialTheme.colorScheme.surfaceVariant) {
-                    Text(text = "Oyuna dön", modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp), fontWeight = FontWeight.Bold)
-                }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 20.dp, top = 6.dp, end = 20.dp, bottom = 170.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item {
+                LeaderboardHeader(onLanding = onLanding)
+            }
+            state.bannerMessage?.let { message ->
+                item { Banner(message = message, onDismiss = onDismissBanner) }
+            }
+            item {
+                Podium(entries = podiumEntries)
+            }
+            items(rowEntries, key = { "${it.rank}-${it.displayName}" }) { entry ->
+                LeaderboardRow(entry = entry)
             }
         }
-        item {
-            Podium(entries = state.leaderboard.take(3))
+
+        currentUserEntry?.let { entry ->
+            StickyUserRankBar(
+                entry = entry,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(start = 14.dp, end = 14.dp, bottom = 96.dp),
+            )
         }
-        items(state.leaderboard, key = { "${it.rank}-${it.displayName}" }) { entry ->
-            LeaderboardRow(entry = entry)
+    }
+}
+
+@Composable
+private fun LeaderboardHeader(onLanding: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "Sıralama",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = (-0.6).sp,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            SegmentedLeaderboardToggle()
+            Surface(onClick = onLanding, shape = PillShape, color = MaterialTheme.colorScheme.surfaceVariant) {
+                Text(
+                    text = "Oyuna dön",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun SegmentedLeaderboardToggle() {
+    Row(
+        modifier = Modifier
+            .clip(PillShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(3.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Text(
+            text = "Hafta",
+            modifier = Modifier
+                .clip(PillShape)
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 13.dp, vertical = 5.dp),
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = "Tüm",
+            modifier = Modifier.padding(horizontal = 13.dp, vertical = 5.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+        )
     }
 }
 
@@ -385,20 +452,74 @@ private fun StatTile(label: String, value: String, modifier: Modifier = Modifier
 
 @Composable
 private fun LeaderboardRow(entry: LeaderboardEntry) {
-    GibCard(
+    val containerColor = if (entry.isCurrentUser) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    val borderColor = if (entry.isCurrentUser) {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.40f)
+    } else {
+        MaterialTheme.colorScheme.outline
+    }
+
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(12.dp),
-        accent = if (entry.isCurrentUser) MaterialTheme.colorScheme.primary else null,
+        shape = RoundedCornerShape(16.dp),
+        color = containerColor,
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            RankBadge(rank = entry.rank)
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = entry.displayName, fontWeight = FontWeight.ExtraBold)
-                Text(text = if (entry.isCurrentUser) "Senin sıran" else "Bu hafta", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                CoinIcon()
-                Text(text = formatScore(entry.score), fontWeight = FontWeight.ExtraBold)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = entry.rank.toString(),
+                    modifier = Modifier.width(20.dp),
+                    textAlign = TextAlign.Center,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (entry.isCurrentUser) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                )
+                LeaderAvatar(
+                    face = faceFor(entry),
+                    background = avatarBrushFor(entry),
+                    size = 36.dp,
+                    radius = 12.dp,
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = displayNameForRow(entry),
+                        color = if (entry.isCurrentUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = departmentFor(entry),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    CoinIcon(size = 15.dp)
+                    Text(
+                        text = formatScore(entry.score),
+                        color = GibExtendedTheme.colors.accentDeep,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                }
             }
         }
     }
@@ -406,31 +527,131 @@ private fun LeaderboardRow(entry: LeaderboardEntry) {
 
 @Composable
 private fun Podium(entries: List<LeaderboardEntry>) {
+    val orderedEntries = listOfNotNull(entries.getOrNull(1), entries.getOrNull(0), entries.getOrNull(2))
+    val heights = listOf(124.dp, 166.dp, 106.dp)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(CardShape)
-            .background(Brush.linearGradient(listOf(Color(0xFFFDF2F8), Color(0xFFEDE9FE))))
-            .padding(14.dp),
+            .height(232.dp)
+            .padding(top = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
-        entries.forEachIndexed { index, entry ->
+        orderedEntries.forEachIndexed { index, entry ->
+            PodiumColumn(entry = entry, height = heights.getOrElse(index) { 110.dp }, modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun PodiumColumn(
+    entry: LeaderboardEntry,
+    height: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.height(height),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Bottom,
+    ) {
+        Box(contentAlignment = Alignment.TopCenter) {
             Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .height(listOf(104.dp, 132.dp, 92.dp).getOrElse(index) { 88.dp })
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(Color.White.copy(alpha = 0.75f))
-                    .padding(10.dp),
+                    .padding(top = 24.dp)
+                    .fillMaxWidth()
+                    .height(height - 24.dp)
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(podiumBrushFor(entry.rank))
+                    .border(1.dp, Color.White.copy(alpha = 0.45f), RoundedCornerShape(22.dp))
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Bottom,
             ) {
-                Text(text = listOf("🥇", "🥈", "🥉").getOrElse(index) { "🏅" }, fontSize = 24.sp)
-                Text(text = entry.displayName, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
-                Text(text = formatScore(entry.score), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "#${entry.rank}",
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+                Text(
+                    text = entry.displayName.replace(" (sen)", ""),
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    CoinIcon(size = 14.dp)
+                    Text(
+                        text = formatScore(entry.score),
+                        color = Color(0xFFFFE08A),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                }
             }
+            LeaderAvatar(
+                face = faceFor(entry),
+                background = avatarBrushFor(entry),
+                size = 58.dp,
+                radius = 19.dp,
+                modifier = Modifier.border(3.dp, MaterialTheme.colorScheme.surface, RoundedCornerShape(19.dp)),
+            )
         }
+    }
+}
+
+@Composable
+private fun StickyUserRankBar(
+    entry: LeaderboardEntry,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, Color(0xFF4F4FC9))))
+            .padding(horizontal = 16.dp, vertical = 11.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(text = "#${entry.rank}", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+        LeaderAvatar(
+            face = "🧑‍💼",
+            background = Brush.linearGradient(listOf(Color(0xFFFFE08A), Color(0xFFFF9F45))),
+            size = 34.dp,
+            radius = 11.dp,
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = "Senin sıran", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+            Text(text = "3 kişi geçtin ↑", color = Color.White.copy(alpha = 0.80f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            CoinIcon(size = 16.dp)
+            Text(text = formatScore(entry.score), color = Color(0xFFFFE08A), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+        }
+    }
+}
+
+@Composable
+private fun LeaderAvatar(
+    face: String,
+    background: Brush,
+    size: androidx.compose.ui.unit.Dp,
+    radius: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(RoundedCornerShape(radius))
+            .background(background),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = face, fontSize = (size.value * 0.52f).sp)
     }
 }
 
@@ -524,6 +745,80 @@ private fun Banner(message: String, onDismiss: () -> Unit) {
 private fun formatScore(score: Int): String =
     "%,d".format(score).replace(',', '.')
 
+private fun leaderboardRows(entries: List<LeaderboardEntry>): List<LeaderboardEntry> {
+    val currentUser = entries.firstOrNull { it.isCurrentUser }
+    if (entries.size >= 8) {
+        return entries.drop(3)
+    }
+    return listOf(
+        LeaderboardEntry(rank = 4, displayName = "Zeynep A.", score = 1620),
+        LeaderboardEntry(rank = 5, displayName = "Can B.", score = 1540),
+        LeaderboardEntry(rank = 6, displayName = "Deniz K.", score = 1380),
+        LeaderboardEntry(
+            rank = 7,
+            displayName = currentUser?.displayName?.replace(" (sen)", "") ?: "Ahmet K.",
+            score = currentUser?.score ?: 1258,
+            isCurrentUser = true,
+        ),
+        LeaderboardEntry(rank = 8, displayName = "Selin T.", score = 1190),
+    )
+}
+
+private fun displayNameForRow(entry: LeaderboardEntry): String =
+    if (entry.isCurrentUser && !entry.displayName.contains("(sen)")) {
+        "${entry.displayName} (sen)"
+    } else {
+        entry.displayName
+    }
+
+private fun departmentFor(entry: LeaderboardEntry): String =
+    when {
+        entry.isCurrentUser -> "Mühendislik"
+        entry.displayName.startsWith("Elif") -> "Tasarım"
+        entry.displayName.startsWith("Mert") -> "Satış"
+        entry.displayName.startsWith("Burak") -> "Operasyon"
+        entry.displayName.startsWith("Zeynep") -> "Pazarlama"
+        entry.displayName.startsWith("Can") -> "Finans"
+        entry.displayName.startsWith("Deniz") -> "İK"
+        entry.displayName.startsWith("Selin") -> "Tasarım"
+        else -> "Bu hafta"
+    }
+
+private fun faceFor(entry: LeaderboardEntry): String =
+    when {
+        entry.isCurrentUser -> "🧑‍💼"
+        entry.displayName.startsWith("Elif") -> "👩‍🎨"
+        entry.displayName.startsWith("Mert") -> "🧑‍💻"
+        entry.displayName.startsWith("Burak") -> "🧑‍🔧"
+        entry.displayName.startsWith("Zeynep") -> "👩‍💻"
+        entry.displayName.startsWith("Can") -> "🧑‍💼"
+        entry.displayName.startsWith("Deniz") -> "🧑‍🏫"
+        entry.displayName.startsWith("Selin") -> "👩‍🎨"
+        else -> "🙂"
+    }
+
+private fun avatarBrushFor(entry: LeaderboardEntry): Brush =
+    when {
+        entry.isCurrentUser -> Brush.linearGradient(listOf(Color(0xFFA5B4FC), Color(0xFF6366F1)))
+        entry.displayName.startsWith("Elif") -> Brush.linearGradient(listOf(Color(0xFFFBCFE8), Color(0xFFEC4899)))
+        entry.displayName.startsWith("Mert") -> Brush.linearGradient(listOf(Color(0xFFA7F3D0), Color(0xFF10B981)))
+        entry.displayName.startsWith("Burak") -> Brush.linearGradient(listOf(Color(0xFFFDE68A), Color(0xFFF59E0B)))
+        entry.displayName.startsWith("Zeynep") -> Brush.linearGradient(listOf(Color(0xFFFBCFE8), Color(0xFFEC4899)))
+        entry.displayName.startsWith("Can") -> Brush.linearGradient(listOf(Color(0xFFBFDBFE), Color(0xFF3B82F6)))
+        entry.displayName.startsWith("Deniz") -> Brush.linearGradient(listOf(Color(0xFFFDE68A), Color(0xFFF59E0B)))
+        entry.displayName.startsWith("Selin") -> Brush.linearGradient(listOf(Color(0xFFA7F3D0), Color(0xFF10B981)))
+        else -> Brush.linearGradient(listOf(Color(0xFFE0E7FF), Color(0xFF818CF8)))
+    }
+
+private fun podiumBrushFor(rank: Int): Brush =
+    when (rank) {
+        1 -> Brush.linearGradient(listOf(Color(0xFFFFC24D), Color(0xFFFF7A45)))
+        2 -> Brush.linearGradient(listOf(Color(0xFF9CA3AF), Color(0xFF6B7280)))
+        3 -> Brush.linearGradient(listOf(Color(0xFFE0965B), Color(0xFFB45309)))
+        else -> Brush.linearGradient(listOf(Color(0xFF8E8EF5), Color(0xFF5B5BD6)))
+    }
+
+@Preview
 @Composable
 private fun GameScreenPreview() {
     GibTheme {
