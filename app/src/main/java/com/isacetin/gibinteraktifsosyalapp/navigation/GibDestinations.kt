@@ -15,6 +15,9 @@ import com.isacetin.gibinteraktifsosyalapp.core.designsystem.component.GibBottom
 
 /** Route names for the 5 bottom-navigation tabs. */
 object GibDestinations {
+    /** Onboarding giriş ekranı — alt navigasyon gizli (§auth login). */
+    const val LOGIN = "login"
+
     const val HOME = "home"
     const val TASKS = "tasks"
     const val GAME = "game"

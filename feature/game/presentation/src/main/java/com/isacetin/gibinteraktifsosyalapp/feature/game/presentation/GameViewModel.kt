@@ -64,36 +64,69 @@ class GameViewModel @Inject constructor(
             combo = 1,
             earnedPoints = 0,
             bannerMessage = null,
-            coins = spawnCoins(count = 5),
+            basketX = 0.5f,
+            coins = listOf(spawnCoin()),
         )
         gameJob = viewModelScope.launch {
+            var sinceSpawnMs = 0L
+            var sinceSecondMs = 0L
             while (true) {
-                delay(1_000)
+                delay(FRAME_MS)
                 val state = _uiState.value as? GameUiState.Content ?: return@launch
                 if (state.mode != GameMode.Playing) return@launch
-                if (state.timeLeftSeconds <= 1) {
+
+                val dt = FRAME_MS / 1000f
+                var score = state.score
+                var combo = state.combo
+                val survivors = ArrayList<FallingCoin>(state.coins.size)
+                for (coin in state.coins) {
+                    val moved = coin.copy(y = coin.y + coin.speed * dt)
+                    when {
+                        moved.y < CATCH_LINE -> survivors.add(moved)
+                        kotlin.math.abs(moved.x - state.basketX) <= CATCH_TOLERANCE -> {
+                            // Sepetle yakalandı
+                            combo = (combo + 1).coerceAtMost(5)
+                            score += moved.value * combo
+                        }
+                        else -> {
+                            // Iskalandı, combo sıfırlanır
+                            combo = 1
+                        }
+                    }
+                }
+
+                sinceSpawnMs += FRAME_MS
+                if (sinceSpawnMs >= SPAWN_INTERVAL_MS && survivors.size < MAX_COINS) {
+                    sinceSpawnMs = 0L
+                    survivors.add(spawnCoin())
+                }
+
+                sinceSecondMs += FRAME_MS
+                var timeLeft = state.timeLeftSeconds
+                if (sinceSecondMs >= 1_000) {
+                    sinceSecondMs -= 1_000
+                    timeLeft -= 1
+                }
+
+                _uiState.value = state.copy(
+                    score = score,
+                    combo = combo,
+                    timeLeftSeconds = timeLeft.coerceAtLeast(0),
+                    coins = survivors,
+                )
+
+                if (timeLeft <= 0) {
                     finishGame()
                     return@launch
                 }
-                _uiState.value = state.copy(
-                    timeLeftSeconds = state.timeLeftSeconds - 1,
-                    combo = (state.combo - 1).coerceAtLeast(1),
-                    coins = (state.coins + spawnCoins(count = 1)).takeLast(7),
-                )
             }
         }
     }
 
-    fun tapCoin(coin: FallingCoin) {
+    fun moveBasket(x: Float) {
         val state = _uiState.value as? GameUiState.Content ?: return
-        if (state.mode != GameMode.Playing || state.coins.none { it.id == coin.id }) return
-
-        val nextCombo = (state.combo + 1).coerceAtMost(5)
-        _uiState.value = state.copy(
-            score = state.score + coin.value * nextCombo,
-            combo = nextCombo,
-            coins = (state.coins.filterNot { it.id == coin.id } + spawnCoins(count = 1)).takeLast(7),
-        )
+        if (state.mode != GameMode.Playing) return
+        _uiState.value = state.copy(basketX = x.coerceIn(0f, 1f))
     }
 
     fun finishGame() {
@@ -167,15 +200,14 @@ class GameViewModel @Inject constructor(
             leaderboard = seedLeaderboard(),
         )
 
-    private fun spawnCoins(count: Int): List<FallingCoin> =
-        List(count) {
-            FallingCoin(
-                id = nextCoinId++,
-                x = Random.nextFloat().coerceIn(0.06f, 0.88f),
-                y = Random.nextFloat().coerceIn(0.12f, 0.72f),
-                value = listOf(50, 80, 100, 120).random(),
-            )
-        }
+    private fun spawnCoin(): FallingCoin =
+        FallingCoin(
+            id = nextCoinId++,
+            x = Random.nextFloat().coerceIn(0.08f, 0.92f),
+            y = 0f,
+            value = listOf(50, 80, 100, 120).random(),
+            speed = Random.nextDouble(0.30, 0.55).toFloat(),
+        )
 
     private fun seedLeaderboard(): List<LeaderboardEntry> =
         listOf(
@@ -186,4 +218,14 @@ class GameViewModel @Inject constructor(
             LeaderboardEntry(rank = 5, displayName = "Zeynep A.", score = 1180),
             LeaderboardEntry(rank = 6, displayName = "Can B.", score = 980),
         )
+
+    private companion object {
+        const val FRAME_MS = 16L
+        const val SPAWN_INTERVAL_MS = 750L
+        const val MAX_COINS = 6
+        // Sepetin yakalama çizgisi (ekranın dikey oranı; 1.0 en alt)
+        const val CATCH_LINE = 0.9f
+        // Coin ile sepet merkezi arasındaki kabul edilen yatay mesafe
+        const val CATCH_TOLERANCE = 0.14f
+    }
 }

@@ -3,6 +3,8 @@ package com.isacetin.gibinteraktifsosyalapp.feature.game.presentation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -31,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
@@ -59,7 +62,7 @@ fun GameRoute(
     GameScreen(
         uiState = uiState,
         onStart = viewModel::startGame,
-        onCoinTap = viewModel::tapCoin,
+        onBasketMove = viewModel::moveBasket,
         onFinish = viewModel::finishGame,
         onLeaderboard = viewModel::showLeaderboard,
         onLanding = viewModel::showLanding,
@@ -72,7 +75,7 @@ fun GameRoute(
 fun GameScreen(
     uiState: GameUiState,
     onStart: () -> Unit,
-    onCoinTap: (FallingCoin) -> Unit,
+    onBasketMove: (Float) -> Unit,
     onFinish: () -> Unit,
     onLeaderboard: () -> Unit,
     onLanding: () -> Unit,
@@ -89,7 +92,7 @@ fun GameScreen(
         )
         is GameUiState.Content -> when (uiState.mode) {
             GameMode.Landing -> LandingContent(uiState, onStart, onLeaderboard, onDismissBanner, modifier)
-            GameMode.Playing -> PlayingContent(uiState, onCoinTap, onFinish, modifier)
+            GameMode.Playing -> PlayingContent(uiState, onBasketMove, onFinish, modifier)
             GameMode.Result -> ResultContent(uiState, onStart, onLeaderboard, onDismissBanner, modifier)
             GameMode.Leaderboard -> LeaderboardContent(uiState, onLanding, onDismissBanner, modifier)
         }
@@ -176,10 +179,17 @@ private fun LandingContent(
 @Composable
 private fun PlayingContent(
     state: GameUiState.Content,
-    onCoinTap: (FallingCoin) -> Unit,
+    onBasketMove: (Float) -> Unit,
     onFinish: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val basketWidth = 120.dp
+    val basketHeight = 64.dp
+    val coinSize = 52.dp
+    // Coin'lerin düştüğü oyun alanının dikey aralığı.
+    val topInset = 96.dp
+    val bottomInset = 40.dp
+
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
@@ -187,8 +197,47 @@ private fun PlayingContent(
                 Brush.verticalGradient(
                     listOf(Color(0xFF14112E), Color(0xFF312E81), Color(0xFF581C87)),
                 ),
-            ),
+            )
+            .pointerInput(Unit) {
+                val widthPx = size.width.toFloat()
+                detectDragGestures { change, _ ->
+                    change.consume()
+                    if (widthPx > 0f) {
+                        onBasketMove(change.position.x / widthPx)
+                    }
+                }
+            }
+            .pointerInput(Unit) {
+                val widthPx = size.width.toFloat()
+                detectTapGestures { offset ->
+                    if (widthPx > 0f) {
+                        onBasketMove(offset.x / widthPx)
+                    }
+                }
+            },
     ) {
+        val playHeight = maxHeight - topInset - bottomInset
+
+        state.coins.forEach { coin ->
+            FallingCoinItem(
+                coin = coin,
+                size = coinSize,
+                modifier = Modifier.offset(
+                    x = (maxWidth * coin.x) - (coinSize / 2),
+                    y = topInset + (playHeight * coin.y) - (coinSize / 2),
+                ),
+            )
+        }
+
+        Basket(
+            modifier = Modifier.offset(
+                x = (maxWidth * state.basketX) - (basketWidth / 2),
+                y = maxHeight - bottomInset - basketHeight,
+            ),
+            width = basketWidth,
+            height = basketHeight,
+        )
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -203,30 +252,15 @@ private fun PlayingContent(
             TimerCircle(seconds = state.timeLeftSeconds)
         }
 
-        state.coins.forEach { coin ->
-            CoinTarget(
-                coin = coin,
-                onClick = { onCoinTap(coin) },
-                modifier = Modifier.offset(
-                    x = (maxWidth - 64.dp) * coin.x,
-                    y = 96.dp + ((maxHeight - 220.dp) * coin.y),
-                ),
-            )
-        }
-
-        Box(
+        Text(
+            text = "Sepeti kaydır, düşen coinleri yakala",
+            color = Color.White.copy(alpha = 0.70f),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 28.dp)
-                .width(132.dp)
-                .height(34.dp)
-                .clip(RoundedCornerShape(22.dp))
-                .background(Color.White.copy(alpha = 0.18f))
-                .border(1.dp, Color.White.copy(alpha = 0.38f), RoundedCornerShape(22.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(text = "sepet", color = Color.White.copy(alpha = 0.78f), fontWeight = FontWeight.Bold)
-        }
+                .align(Alignment.TopCenter)
+                .padding(top = 64.dp),
+        )
 
         Surface(
             onClick = onFinish,
@@ -243,6 +277,48 @@ private fun PlayingContent(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
             )
         }
+    }
+}
+
+@Composable
+private fun FallingCoinItem(
+    coin: FallingCoin,
+    size: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(RoundedCornerShape(percent = 50))
+            .background(Color(0xFFFFF7D6).copy(alpha = 0.22f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        CoinIcon(size = size * 0.76f)
+    }
+}
+
+@Composable
+private fun Basket(
+    width: androidx.compose.ui.unit.Dp,
+    height: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .width(width)
+            .height(height)
+            .clip(RoundedCornerShape(bottomStart = 26.dp, bottomEnd = 26.dp, topStart = 10.dp, topEnd = 10.dp))
+            .background(
+                Brush.verticalGradient(listOf(Color(0xFFFFC24D), Color(0xFFFF7A45))),
+            )
+            .border(
+                2.dp,
+                Color.White.copy(alpha = 0.55f),
+                RoundedCornerShape(bottomStart = 26.dp, bottomEnd = 26.dp, topStart = 10.dp, topEnd = 10.dp),
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = "🧺", fontSize = 30.sp)
     }
 }
 
@@ -656,20 +732,6 @@ private fun LeaderAvatar(
 }
 
 @Composable
-private fun CoinTarget(coin: FallingCoin, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .size(58.dp)
-            .clip(RoundedCornerShape(percent = 50))
-            .background(Color(0xFFFFF7D6).copy(alpha = 0.22f))
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        CoinIcon(size = 42.dp)
-    }
-}
-
-@Composable
 private fun TimerCircle(seconds: Int) {
     Box(
         modifier = Modifier
@@ -833,7 +895,7 @@ private fun GameScreenPreview() {
                 ),
             ),
             onStart = {},
-            onCoinTap = {},
+            onBasketMove = {},
             onFinish = {},
             onLeaderboard = {},
             onLanding = {},

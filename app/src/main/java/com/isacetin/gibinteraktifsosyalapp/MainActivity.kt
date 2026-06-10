@@ -13,6 +13,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.isacetin.gibinteraktifsosyalapp.core.designsystem.component.GibBottomBar
 import com.isacetin.gibinteraktifsosyalapp.core.designsystem.theme.GibTheme
+import com.isacetin.gibinteraktifsosyalapp.navigation.GibDestinations
 import com.isacetin.gibinteraktifsosyalapp.navigation.GibNavHost
 import com.isacetin.gibinteraktifsosyalapp.navigation.gibBottomBarItems
 import dagger.hilt.android.AndroidEntryPoint
@@ -37,19 +38,22 @@ fun GibApp() {
 
     Scaffold(
         bottomBar = {
-            GibBottomBar(
-                items = gibBottomBarItems,
-                currentRoute = currentRoute,
-                onItemSelected = { item ->
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
+            // Giriş ekranında alt navigasyon gizlenir.
+            if (currentRoute != GibDestinations.LOGIN) {
+                GibBottomBar(
+                    items = gibBottomBarItems,
+                    currentRoute = currentRoute,
+                    onItemSelected = { item ->
+                        navController.navigate(item.route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-            )
+                    },
+                )
+            }
         },
     ) { innerPadding ->
         GibNavHost(

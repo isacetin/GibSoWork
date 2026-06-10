@@ -10,6 +10,7 @@ import com.isacetin.gibinteraktifsosyalapp.feature.game.presentation.GameRoute
 import com.isacetin.gibinteraktifsosyalapp.feature.shop.presentation.ShopRoute
 import com.isacetin.gibinteraktifsosyalapp.feature.tasks.presentation.TasksRoute
 import com.isacetin.gibinteraktifsosyalapp.ui.home.HomeScreen
+import com.isacetin.gibinteraktifsosyalapp.ui.login.LoginScreen
 import com.isacetin.gibinteraktifsosyalapp.ui.profile.ProfileScreen
 
 @Composable
@@ -19,9 +20,19 @@ fun GibNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = GibDestinations.HOME,
+        startDestination = GibDestinations.LOGIN,
         modifier = modifier,
     ) {
+        composable(GibDestinations.LOGIN) {
+            LoginScreen(
+                onLoginSuccess = {
+                    navController.navigate(GibDestinations.HOME) {
+                        popUpTo(GibDestinations.LOGIN) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+            )
+        }
         composable(GibDestinations.HOME) {
             HomeScreen(
                 onNavigateToTasks = { navController.navigate(GibDestinations.TASKS) },

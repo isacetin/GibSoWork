@@ -15,6 +15,7 @@ sealed interface GameUiState {
         val earnedPoints: Int = 0,
         val bannerMessage: String? = null,
         val coins: List<FallingCoin> = emptyList(),
+        val basketX: Float = 0.5f,
         val leaderboard: List<LeaderboardEntry> = emptyList(),
     ) : GameUiState
 
@@ -33,4 +34,5 @@ data class FallingCoin(
     val x: Float,
     val y: Float,
     val value: Int,
+    val speed: Float,
 )

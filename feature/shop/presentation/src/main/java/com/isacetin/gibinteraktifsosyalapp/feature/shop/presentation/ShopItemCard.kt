@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -46,9 +47,7 @@ fun ShopItemCard(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (item.rarity != ItemRarity.COMMON) {
-                RarityBadge(rarity = item.rarity, modifier = Modifier.align(Alignment.Start))
-            }
+            RarityBadge(rarity = item.rarity, modifier = Modifier.align(Alignment.Start))
 
             Text(text = item.category.toEmoji(), fontSize = 40.sp)
 
@@ -66,10 +65,11 @@ fun ShopItemCard(
 
 @Composable
 private fun RarityBadge(rarity: ItemRarity, modifier: Modifier = Modifier) {
+    // Always rendered (invisible for COMMON) so every card reserves the same space.
     val label = when (rarity) {
         ItemRarity.RARE -> "NADIR"
         ItemRarity.LEGENDARY -> "EFSANE"
-        ItemRarity.COMMON -> return
+        ItemRarity.COMMON -> "NADIR"
     }
     val color = when (rarity) {
         ItemRarity.LEGENDARY -> GibExtendedTheme.colors.accent
@@ -82,7 +82,8 @@ private fun RarityBadge(rarity: ItemRarity, modifier: Modifier = Modifier) {
         color = color,
         modifier = modifier
             .background(color = color.copy(alpha = 0.12f), shape = RoundedCornerShape(percent = 50))
-            .padding(horizontal = 8.dp, vertical = 2.dp),
+            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .alpha(if (rarity == ItemRarity.COMMON) 0f else 1f),
     )
 }
 

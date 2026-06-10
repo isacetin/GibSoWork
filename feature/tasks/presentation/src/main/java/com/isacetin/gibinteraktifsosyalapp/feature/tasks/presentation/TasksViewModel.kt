@@ -3,6 +3,7 @@ package com.isacetin.gibinteraktifsosyalapp.feature.tasks.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.isacetin.gibinteraktifsosyalapp.feature.tasks.domain.model.Task
+import com.isacetin.gibinteraktifsosyalapp.feature.tasks.domain.model.TaskStatus
 import com.isacetin.gibinteraktifsosyalapp.feature.tasks.domain.usecase.CompleteTaskUseCase
 import com.isacetin.gibinteraktifsosyalapp.feature.tasks.domain.usecase.GetTasksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,22 +44,40 @@ class TasksViewModel @Inject constructor(
         }
     }
 
-    fun completeTask(task: Task) {
+    fun completeTask(task: Task) = setTaskStatus(task, TaskStatus.DONE)
+
+    fun setTaskStatus(task: Task, status: TaskStatus) {
         viewModelScope.launch {
-            completeTaskUseCase(task)
-                .onSuccess { result ->
-                    _uiState.update { state ->
-                        if (state !is TasksUiState.Content) return@update state
-                        val updatedTasks = state.tasks.map {
-                            if (it.id == result.task.id) result.task else it
+            if (status == TaskStatus.DONE) {
+                completeTaskUseCase(task)
+                    .onSuccess { result ->
+                        _uiState.update { state ->
+                            if (state !is TasksUiState.Content) return@update state
+                            val updatedTasks = state.tasks.map {
+                                if (it.id == result.task.id) result.task else it
+                            }
+                            state.copy(
+                                tasks = updatedTasks,
+                                balance = state.balance + result.awardedPoints,
+                                rewardAmount = result.awardedPoints.takeIf { it > 0 },
+                            )
                         }
-                        state.copy(
-                            tasks = updatedTasks,
-                            balance = state.balance + result.awardedPoints,
-                            rewardAmount = result.awardedPoints.takeIf { it > 0 },
-                        )
                     }
+            } else {
+                _uiState.update { state ->
+                    if (state !is TasksUiState.Content) return@update state
+                    val updatedTasks = state.tasks.map {
+                        if (it.id == task.id) it.copy(status = status) else it
+                    }
+                    state.copy(tasks = updatedTasks)
                 }
+            }
+        }
+    }
+
+    fun setFilter(filter: String) {
+        _uiState.update { state ->
+            if (state is TasksUiState.Content) state.copy(selectedFilter = filter) else state
         }
     }
 
