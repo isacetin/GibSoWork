@@ -291,7 +291,7 @@ private fun QuickTile(
                         .padding(horizontal = 6.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(text = it, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(text = it, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
             Column {
