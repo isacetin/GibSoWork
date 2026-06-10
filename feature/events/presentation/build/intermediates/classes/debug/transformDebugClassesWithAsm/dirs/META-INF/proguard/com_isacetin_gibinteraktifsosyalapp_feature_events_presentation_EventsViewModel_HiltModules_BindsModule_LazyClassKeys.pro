@@ -1,0 +1,1 @@
+-keep,allowobfuscation,allowshrinking class com.isacetin.gibinteraktifsosyalapp.feature.events.presentation.EventsViewModel

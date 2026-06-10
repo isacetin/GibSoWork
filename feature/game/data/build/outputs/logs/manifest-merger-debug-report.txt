@@ -1,0 +1,16 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/isacetin/AndroidStudioProjects/GibInteraktifSosyalApp/feature/game/data/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3514802259233005358.xml:2:13-83
+INJECTED from /Users/isacetin/AndroidStudioProjects/GibInteraktifSosyalApp/feature/game/data/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3514802259233005358.xml:2:13-83
+	package
+		INJECTED from /Users/isacetin/AndroidStudioProjects/GibInteraktifSosyalApp/feature/game/data/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3514802259233005358.xml
+	xmlns:android
+		ADDED from /Users/isacetin/AndroidStudioProjects/GibInteraktifSosyalApp/feature/game/data/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3514802259233005358.xml:2:23-81
+uses-sdk
+INJECTED from /Users/isacetin/AndroidStudioProjects/GibInteraktifSosyalApp/feature/game/data/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3514802259233005358.xml reason: use-sdk injection requested
+INJECTED from /Users/isacetin/AndroidStudioProjects/GibInteraktifSosyalApp/feature/game/data/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3514802259233005358.xml
+INJECTED from /Users/isacetin/AndroidStudioProjects/GibInteraktifSosyalApp/feature/game/data/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3514802259233005358.xml
+	android:targetSdkVersion
+		INJECTED from /Users/isacetin/AndroidStudioProjects/GibInteraktifSosyalApp/feature/game/data/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3514802259233005358.xml
+	android:minSdkVersion
+		INJECTED from /Users/isacetin/AndroidStudioProjects/GibInteraktifSosyalApp/feature/game/data/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3514802259233005358.xml
