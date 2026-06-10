@@ -1,0 +1,41 @@
+package com.isacetin.gibinteraktifsosyalapp.core.designsystem.theme
+
+import androidx.compose.ui.graphics.Color
+
+// Light
+val LightPrimary = Color(0xFF5B5BD6)
+val LightOnPrimary = Color(0xFFFFFFFF)
+val LightPrimaryContainer = Color(0xFFE6E6FB)
+val LightOnPrimaryContainer = Color(0xFF1A1A4D)
+val LightAccent = Color(0xFFFFB020)
+val LightOnAccent = Color(0xFF1A1200)
+val LightSuccess = Color(0xFF1FB873)
+val LightOnSuccess = Color(0xFFFFFFFF)
+val LightDanger = Color(0xFFE5484D)
+val LightOnDanger = Color(0xFFFFFFFF)
+val LightBackground = Color(0xFFFAFAFD)
+val LightOnBackground = Color(0xFF16161D)
+val LightSurface = Color(0xFFFFFFFF)
+val LightOnSurface = Color(0xFF16161D)
+val LightSurfaceVariant = Color(0xFFF6F6FB)
+val LightOnSurfaceVariant = Color(0xFF6B6B7B)
+val LightOutline = Color(0xFFE2E2EC)
+
+// Dark
+val DarkPrimary = Color(0xFF8E8EF5)
+val DarkOnPrimary = Color(0xFF1A1A4D)
+val DarkPrimaryContainer = Color(0xFF393A8C)
+val DarkOnPrimaryContainer = Color(0xFFE6E6FB)
+val DarkAccent = Color(0xFFFFC24D)
+val DarkOnAccent = Color(0xFF1A1200)
+val DarkSuccess = Color(0xFF1FB873)
+val DarkOnSuccess = Color(0xFF052F1A)
+val DarkDanger = Color(0xFFFF8A80)
+val DarkOnDanger = Color(0xFF3A0A06)
+val DarkBackground = Color(0xFF0E0E14)
+val DarkOnBackground = Color(0xFFF2F2F7)
+val DarkSurface = Color(0xFF181820)
+val DarkOnSurface = Color(0xFFF2F2F7)
+val DarkSurfaceVariant = Color(0xFF22222E)
+val DarkOnSurfaceVariant = Color(0xFFA0A0B0)
+val DarkOutline = Color(0xFF3A3A48)

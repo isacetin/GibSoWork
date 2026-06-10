@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.isacetin.gibinteraktifsosyalapp.feature.tasks.domain.usecase.CompleteTaskUseCaseTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-10T09:19:38.200Z" hostname="Isa-MacBook-Pro.local" time="0.868">
+  <properties/>
+  <testcase name="AC-02 - completing an already done task is idempotent and awards no points" classname="com.isacetin.gibinteraktifsosyalapp.feature.tasks.domain.usecase.CompleteTaskUseCaseTest" time="0.855"/>
+  <testcase name="repository failure is propagated as Result failure" classname="com.isacetin.gibinteraktifsosyalapp.feature.tasks.domain.usecase.CompleteTaskUseCaseTest" time="0.008"/>
+  <testcase name="AC-01 - completing a todo task awards storyPoints times POINT_PER_SP" classname="com.isacetin.gibinteraktifsosyalapp.feature.tasks.domain.usecase.CompleteTaskUseCaseTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/Users/isacetin/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.17/e3c251a39dc90badaf71c83427ba46840f219d8d/byte-buddy-agent-1.14.17.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+</testsuite>

@@ -4,44 +4,57 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.isacetin.gibinteraktifsosyalapp.ui.theme.GibInteraktifSosyalAppTheme
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.isacetin.gibinteraktifsosyalapp.core.designsystem.component.GibBottomBar
+import com.isacetin.gibinteraktifsosyalapp.core.designsystem.theme.GibTheme
+import com.isacetin.gibinteraktifsosyalapp.navigation.GibNavHost
+import com.isacetin.gibinteraktifsosyalapp.navigation.gibBottomBarItems
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            GibInteraktifSosyalAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            GibTheme {
+                GibApp()
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun GibApp() {
+    val navController = rememberNavController()
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    GibInteraktifSosyalAppTheme {
-        Greeting("Android")
+    Scaffold(
+        bottomBar = {
+            GibBottomBar(
+                items = gibBottomBarItems,
+                currentRoute = currentRoute,
+                onItemSelected = { item ->
+                    navController.navigate(item.route) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
+        GibNavHost(
+            navController = navController,
+            modifier = Modifier.padding(innerPadding),
+        )
     }
 }
